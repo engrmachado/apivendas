@@ -1,0 +1,39 @@
+name: CD(continuous deploy)
+
+on:
+  push: 
+    branches: 
+      - staging
+      - master
+
+jobs:
+  pipeline-cd:
+    runs-on: ubuntu-latest    
+    steps:
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Update the application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+           cd /root/apps/poc-api-ci-cd-github-actions && 
+           git fetch &&
+           git checkout ${{ steps.extract_branch.outputs.branch }} &&
+           git pull origin ${{ steps.extract_branch.outputs.branch }} && cd /root/apps/poc-api-ci-cd-github-actions &&
+           bash deploy.sh
+
+
+      - name: Notify CI process
+        if: always()
+        uses: appleboy/discord-action@master
+        with:
+          webhook_id: ${{ secrets.WEBHOOK_ID }}
+          webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+          message: CD of branch ${{ steps.extract_branch.outputs.branch }} executed ${{ job.status }}.
