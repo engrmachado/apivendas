@@ -1,9 +1,11 @@
 import 'reflect-metadata';
 import express, { NextFunction, Request, Response } from 'express';
+import 'express-async-errors';
 import cors from 'cors';
 import routes from './routes';
 import AppError from '@shared/errors/AppError';
 import '@shared/typeorm';
+
 
 const app = express();
 app.use(cors());
@@ -26,6 +28,6 @@ app.use(
   },
 );
 
-app.listen(13333, () => {
+app.listen(3333, () => {
   console.log('Server rodando ');
 });
